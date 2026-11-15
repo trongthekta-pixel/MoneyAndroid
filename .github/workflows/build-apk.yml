@@ -19,8 +19,19 @@ jobs:
 
       - name: Extract Money project
         run: |
-          unzip -o MoneyAndroid-cloud-build.zip -d /tmp/money-src
-          cp -a /tmp/money-src/. .
+          set -e
+          unzip -o MoneyAndroid_APK_Build.zip -d /tmp/money-src
+          PROJECT_DIR="$(dirname "$(find /tmp/money-src -type f -name settings.gradle -print -quit)")"
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "Khong tim thay settings.gradle trong ZIP"
+            exit 1
+          fi
+          cp -a "$PROJECT_DIR"/app ./app
+          cp -a "$PROJECT_DIR"/settings.gradle ./settings.gradle
+          cp -a "$PROJECT_DIR"/build.gradle ./build.gradle
+          if [ -f "$PROJECT_DIR/gradle.properties" ]; then
+            cp -a "$PROJECT_DIR"/gradle.properties ./gradle.properties
+          fi
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -41,3 +52,4 @@ jobs:
         with:
           name: Money-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
